@@ -4,16 +4,16 @@
 集成准备
 -------
 
-####  1. 获取AppID、Secret
-集成淘手游SDK前，您需要先在淘手游SDK官网获取AppID、AppSecret。
+###  1. 获取AppID、Secret
+集成淘手游SDK前，您需要先在[淘手游SDK官网](http://www.taoshouyou.com)获取AppID、AppSecret。
 
-####  2. 提供游戏充值的URL给淘手游
+###  2. 提供游戏充值的URL给淘手游
 用户在游戏内购买东西时，淘手游通过此URL通知游戏厂商。
 
 导入SDK
 -------
 
-#### 1. 使用CocoaPods自动导入
+### 1. 使用CocoaPods自动导入
 在您的Podfile里添加此行内容：
 	```
 	pod 'TSYSDK', :git => 'https://github.com/devdawei/TSYSDK.git'
@@ -24,8 +24,8 @@
 	pod install
 	```
 
-#### 2. 下载SDK手动导入
-您需要先下载SDK压缩包。[点击下载](http://www.baidu.com)
+### 2. 下载SDK手动导入
+您需要先[下载SDK压缩包](http://www.taoshouyou.com)。
 
 然后将压缩包中`libs`文件夹下的`TSYSDK`、`AlipaySDK`、`FDFullscreenPopGesture`、`IQKeyboardManager`文件夹和其中的文件拷贝进自己的项目。
 
@@ -38,7 +38,6 @@
 工程配置
 -------
 
-#### 3. Info的配置
 在`Info`选项卡的`URL Types`中，添加`URL Schemes`，在初始化SDK时要用到该参数，例如跳转到支付宝完成支付后，根据该参数跳转回应用。
 
 **NOTE：** 图片中填写的`URL Schemes`仅为测试所用，您在配置时请一定要填写属于您APP自己的`URL Schemes`标识：
@@ -67,7 +66,7 @@
 基本功能使用
 ----------
 
-#### 1. 在AppDelegate中初始化SDK
+### 1. 在AppDelegate中初始化SDK
 您需要先引入头文件：
 ```
 #import <TSYSDK/TSYSDK.h>
@@ -91,7 +90,28 @@
 }
 ```
 
-#### 2. 登录接口的使用
+还需要在AppDelegate中实现处理openURL的代理方法，在代理方法中处理支付结果：
+```
+// NOTE: iOS 9 之前在此代理方法中处理 openURL
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
+{
+    // 调用淘手游处理支付结果的方法
+    [[TSYSDKManager sharedManager] handleOpenUrl:url options:nil];
+    
+    return YES;
+}
+
+// NOTE: iOS 9 之后使用新API处理 openURL
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString*, id> *)options
+{
+    // 调用淘手游处理支付结果的方法
+    [[TSYSDKManager sharedManager] handleOpenUrl:url options:options];
+    
+    return YES;
+}
+```
+
+### 2. 登录接口的使用
 调用登录接口，需要先遵守`TSYSDKLoginDelegate`，并实现其中的代理方法：
 ```
 /**
@@ -136,7 +156,7 @@ mgr.loginDelegate = self;
 - (void)openLoginController;
 ```
 
-#### 3. 进入游戏接口的使用
+### 3. 进入游戏接口的使用
 调用进入游戏接口，需要先遵守`TSYSDKEnterGameDelegate`，并实现其中的代理方法：
 ```
 /**
@@ -160,8 +180,8 @@ typedef NS_ENUM(NSUInteger, TSYSDKEnterGameStatus) {
 @param resultDict 进入游戏相关信息
 */
 - (void)tsySDKManager:(TSYSDKManager *)manager
-enterGameWithStatus:(TSYSDKEnterGameStatus)status
-		 resultDict:(NSDictionary *)resultDict;
+  enterGameWithStatus:(TSYSDKEnterGameStatus)status
+		   resultDict:(NSDictionary *)resultDict;
 ```
 
 然后调用进入游戏接口：
@@ -211,7 +231,7 @@ mgr.enterGameDelegate = self;
 - (void)enterGameWithUserInfo:(NSString *)userInfo;
 ```
 
-#### 4. 支付接口的使用
+### 4. 支付接口的使用
 调用支付接口，需要先遵守`TSYSDKPayDelegate`，并实现其中的代理方法：
 ```
 /**
@@ -308,7 +328,7 @@ mgr.payDelegate = self;
                     totalFee:(NSString *)total_fee;
 ```
 
-#### 4. 切换账号接口的使用
+### 5. 切换账号接口的使用
 调用切换账号接口，需要先遵守`TSYSDKSwitchAccountDelegate`，并实现其中的代理方法：
 ```
 /**
@@ -349,4 +369,60 @@ mgr.switchAccountDelegate = self;
 - (void)switchAccount;
 ```
 
-恭喜您，至此已经成功集成和使用淘手游SDK。
+服务器端接入
+==========
+
+淘手游提供的Http接口
+-----------------
+
+### 1. 淘手游提供的Http接口
+只有这个接口才能保证用户是通过帐号密码验证的，一定要使用。游戏服务器向平台服务器验证登录用户令牌是否有效的接口说明：
+接口链接：[http://sdk.taoshouyou.com/user/checktoken](http://sdk.taoshouyou.com/user/checktoken)
+提交方式：POST
+参数说明：
+
+| 参数名               | 参数类型              | 参数说明 |
+| :-----------------: | :------------------: | :----------------------- |
+| userid              | String               | 游戏用户对应id |
+| token               | String               | 令牌，验证用户是否有效 |
+| appid               | String               | 淘手游平台对应的appid |
+
+返回值说明：
+
+| 参数名               | 参数说明 |
+| :-----------------: | :------------------: |
+| success             | 用户令牌有效 |
+| fail                | 用户令牌无效 |
+
+用户登录流程：
+![loginProcess](https://raw.githubusercontent.com/devdawei/TSYSDK/master/DocLinkImg/img_service_loginProcess.png)
+
+### 2. 游戏方服务器提供的http接口（游戏内购买接口）
+淘手游服务器完成支付流程后将通知游戏服务器修改玩家账户内相关数据的接口, 只有用户支付成功才会产生通知。参照用户充值流程图中9-10步骤。
+接口地址：需游戏方提供
+提交方式：POST
+参数说明：具体参数可商量约定
+
+| 参数名               | 参数类型              | 参数说明 |
+| :-----------------: | :------------------: | :----------------------- |
+| appid               | String               | 淘手游平台对应的appid |
+| bizno               | String               | 淘手游订单编号，淘手游订单系统的唯一编号 |
+| total_fee           | Double               | 玩家充值金额, 保留2位小数 |
+| goods_data          | JSON String          | 游戏数据JSON字符串
+| signature           | String               | MD5签名值（详细内容查看下面的签名算法）|
+
+签名算法：将除signature外所有参数键值对按键以字典序升序排列后拼在一起，例如："k1=v1&k2=v2&k3=v3"；然后在拼好的字符串末尾直接拼接上appSecret；上述字符串的MD5值即为签名的值，例如：appSecret=443e70f1c0a51337a9d772fee93fcb30，则sign=md5(“k1=v1&k2=v2&k3=v3 443e70f1c0a51337a9d772fee93fcb30”) 
+
+签名验证：将除signature外其它所有参数生成签名值和signature比较,相同则正确，不同则被篡改。
+
+注：签名中的appSecret由平台方提供，请求中间不传递这个参数， 拼接时无键名。
+
+返回值定义：
+
+| 参数名               | 参数说明 |
+| :-----------------: | :------------------: |
+| success             | 充值通知服务器成功，中止发送通知。同一订单号多次请求游戏已充值成功也要返回success才会中止发送通知 |
+| fail                | 充值通知服务器失败，延时1分钟后再次发送通知，如果仍然失败则加倍延时时间后通知，直到返回success为止才会中止通知。 |
+
+用户登录流程：
+![payProcess](https://raw.githubusercontent.com/devdawei/TSYSDK/master/DocLinkImg/img_service_payProcess.png)
