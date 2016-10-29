@@ -15,14 +15,14 @@
 
 ### 1. 使用CocoaPods自动导入
 在您的Podfile里添加此行内容：
-	```
-	pod 'TSYSDK', :git => 'https://github.com/devdawei/TSYSDK.git'
-	```
+```
+pod 'TSYSDK', :git => 'https://github.com/devdawei/TSYSDK.git'
+```
 
 然后在Terminal下运行命令：
-	```
-	pod install
-	```
+```
+pod install
+```
 
 ### 2. 下载SDK手动导入
 您需要先[下载SDK压缩包](http://www.taoshouyou.com)。
@@ -369,16 +369,22 @@ mgr.switchAccountDelegate = self;
 - (void)switchAccount;
 ```
 
-服务器端接入
-==========
+**至此，您已成功接入iOS端淘手游SDK。**
+
+淘手游SDK - 服务器端接入
+=====================
 
 淘手游提供的Http接口
 -----------------
 
 ### 1. 淘手游提供的Http接口
-只有这个接口才能保证用户是通过帐号密码验证的，一定要使用。游戏服务器向平台服务器验证登录用户令牌是否有效的接口说明：
+
+**NOTE：**只有这个接口才能保证用户是通过帐号密码验证的，一定要使用。游戏服务器向平台服务器验证登录用户令牌是否有效的接口说明：
+
 接口链接：[http://sdk.taoshouyou.com/user/checktoken](http://sdk.taoshouyou.com/user/checktoken)
+
 提交方式：POST
+
 参数说明：
 
 | 参数名               | 参数类型              | 参数说明 |
@@ -390,7 +396,7 @@ mgr.switchAccountDelegate = self;
 返回值说明：
 
 | 参数名               | 参数说明 |
-| :-----------------: | :------------------: |
+| :-----------------: | :------------------ |
 | success             | 用户令牌有效 |
 | fail                | 用户令牌无效 |
 
@@ -398,9 +404,13 @@ mgr.switchAccountDelegate = self;
 ![loginProcess](https://raw.githubusercontent.com/devdawei/TSYSDK/master/DocLinkImg/img_service_loginProcess.png)
 
 ### 2. 游戏方服务器提供的http接口（游戏内购买接口）
-淘手游服务器完成支付流程后将通知游戏服务器修改玩家账户内相关数据的接口, 只有用户支付成功才会产生通知。参照用户充值流程图中9-10步骤。
+
+**NOTE：**淘手游服务器完成支付流程后将通知游戏服务器修改玩家账户内相关数据的接口, 只有用户支付成功才会产生通知。参照用户充值流程图中9-10步骤。
+
 接口地址：需游戏方提供
+
 提交方式：POST
+
 参数说明：具体参数可商量约定
 
 | 参数名               | 参数类型              | 参数说明 |
@@ -420,9 +430,11 @@ mgr.switchAccountDelegate = self;
 返回值定义：
 
 | 参数名               | 参数说明 |
-| :-----------------: | :------------------: |
+| :-----------------: | :------------------ |
 | success             | 充值通知服务器成功，中止发送通知。同一订单号多次请求游戏已充值成功也要返回success才会中止发送通知 |
 | fail                | 充值通知服务器失败，延时1分钟后再次发送通知，如果仍然失败则加倍延时时间后通知，直到返回success为止才会中止通知。 |
 
 用户登录流程：
 ![payProcess](https://raw.githubusercontent.com/devdawei/TSYSDK/master/DocLinkImg/img_service_payProcess.png)
+
+**至此，您已成功接入服务器端淘手游SDK。**
