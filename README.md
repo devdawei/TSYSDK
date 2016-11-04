@@ -79,12 +79,9 @@ pod install
 	// Override point for customization after application launch.
 
 	/* 配置淘手游SDK */
-	TSYSDKManager *manager = [TSYSDKManager sharedManager];
-	[manager configWithAppID:@"56d136d2d6df472adbac8c87"
-	              urlSchemes:@"tsysdkdemo"];
-	/* 配置淘手游SDK浮窗按钮 */
-	TSYSDKMenu *menu = [TSYSDKMenu sharedMenu];
-	menu.window = self.window;
+    [[TSYSDKManager sharedManager] configWithAppID:@"56d136d2d6df472adbac8c87"
+                                        urlSchemes:@"tsysdkdemo"
+                                    showMenuWindow:self.window];
 
 	return YES;
 }
@@ -238,7 +235,6 @@ mgr.enterGameDelegate = self;
  支付方式
  - TSYPayTypeUnSelected: 还未选择支付方式
  - TSYPayTypeTSYBalance: 淘手游余额支付
- - TSYPayTypeTenPay:     财付通
  - TSYPayTypeAli:        支付宝
  - TSYPayTypeWeChat:     微信
  - TSYPayTypeUnion:      银联
