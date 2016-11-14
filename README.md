@@ -143,17 +143,15 @@ TSYSDKManager *mgr = [TSYSDKManager sharedManager];
 // 设置登录代理
 mgr.loginDelegate = self;
 // 调用打开登录控制器接口
-[mgr loginWithJSONInfo:@""];
+[mgr login];
 ```
 
 关于登录接口说明：
 ```
 /**
  登录（成功或失败都会调用 TSYSDKLoginDelegate 中的代理方法）
- 
- @param jsonInfo 登录相关的 JSON 字符串（保留参数，目前可传空字符串(@"")）
  */
-- (void)loginWithJSONInfo:(NSString *)jsonInfo;
+- (void)login;
 ```
 
 ### 3. 进入游戏接口的使用
