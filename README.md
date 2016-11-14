@@ -49,6 +49,7 @@ pod install
 <array>
 	<string>weixin</string>
 	<string>wechat</string>
+	<string>mqqwpa</string>
 </array>
 ```
 
@@ -142,15 +143,17 @@ TSYSDKManager *mgr = [TSYSDKManager sharedManager];
 // 设置登录代理
 mgr.loginDelegate = self;
 // 调用打开登录控制器接口
-[mgr openLoginController];
+[mgr loginWithJSONInfo:@""];
 ```
 
 关于登录接口说明：
 ```
 /**
- 打开登录界面
+ 登录（成功或失败都会调用 TSYSDKLoginDelegate 中的代理方法）
+ 
+ @param jsonInfo 登录相关的 JSON 字符串（保留参数，目前可传空字符串(@"")）
  */
-- (void)openLoginController;
+- (void)loginWithJSONInfo:(NSString *)jsonInfo;
 ```
 
 ### 3. 进入游戏接口的使用
@@ -221,11 +224,11 @@ mgr.enterGameDelegate = self;
 关于进入游戏接口说明：
 ```
 /**
- 进入游戏
+ 进入游戏（成功或失败都会调用 TSYSDKEnterGameDelegate 中的代理方法）
  
- @param userInfo 包含用户和游戏角色信息的 JSON 字符串（保留参数，目前可传空字符串(@"")）
+ @param jsonInfo 包含用户和游戏角色信息的 JSON 字符串（保留参数，目前可传空字符串(@"")）
  */
-- (void)enterGameWithUserInfo:(NSString *)userInfo;
+- (void)enterGameWithJSONInfo:(NSString *)jsonInfo;
 ```
 
 ### 4. 支付接口的使用
@@ -307,7 +310,7 @@ mgr.payDelegate = self;
 关于支付接口说明：
 ```
 /**
- 支付
+ 支付（成功或失败都会调用 TSYSDKPayDelegate 中的代理方法）
  
  @param servicearea_id 区服
  @param goods_price    单价
@@ -343,9 +346,11 @@ typedef NS_ENUM(NSUInteger, TSYSDKSwitchAccountStatus) {
  
  @param manager TSYSDKManager
  @param status  切换账号的状态码
+ @param resultDict 切换账号相关信息
  */
 - (void)  tsySDKManager:(TSYSDKManager *)manager
-switchAccountWithStatus:(TSYSDKSwitchAccountStatus)status;
+switchAccountWithStatus:(TSYSDKSwitchAccountStatus)status
+             resultDict:(NSDictionary *)resultDict;
 ```
 
 然后调用切换账号接口：
@@ -360,9 +365,63 @@ mgr.switchAccountDelegate = self;
 关于切换账号接口说明：
 ```
 /**
- 切换账号（退出账号）
+ 切换账号（即用户退出账号，成功或失败都会调用 TSYSDKSwitchAccountDelegate 中的代理方法）
  */
 - (void)switchAccount;
+```
+
+### 6. 处理用户退游返现
+处理用户退游返现，需要先遵守`TSYSDKCashBackDelegate`，并实现其中的代理方法：
+```
+/**
+ 处理用户退游返现的状态
+
+ - TSYSDKCashBackHandleStatusBegin: 开始处理
+ - TSYSDKCashBackHandleStatusEnd: 完成处理
+ */
+typedef NS_ENUM(NSUInteger, TSYSDKCashBackHandleStatus) {
+    TSYSDKCashBackHandleStatusBegin = 0,
+    TSYSDKCashBackHandleStatusEnd = 1
+};
+
+/**
+ 退游返现成功，会回调此代理方法
+
+ @param manager TSYSDKManager
+ */
+- (void)tsySDKManager:(TSYSDKManager *)manager
+      cashBackHandler:(void (^)(TSYSDKCashBackHandleStatus))handler;
+```
+
+示例如下：
+```
+#pragma mark - Life cycle
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    self.view.backgroundColor = [UIColor whiteColor];
+    self.navigationItem.title = @"游戏界面";
+    
+    /* 在 - (void)viewDidLoad 中设置用户退游返现成功的代理 */
+    [TSYSDKManager sharedManager].cashBackDelegate = self;
+}
+
+#pragma mark -
+#pragma mark 用户退游返现成功后会调用此代理方法，在这里提示用户已经退游，同时结束用户正在玩的游戏
+- (void)tsySDKManager:(TSYSDKManager *)manager cashBackHandler:(void (^)(TSYSDKCashBackHandleStatus))handler
+{
+    /* 开始处理之前调用回调Block */
+    handler(TSYSDKCashBackHandleStatusBegin);
+    [DVVAlertView showAlertWithTitle:@"您的账号已经退游返现成功，不能继续玩了哦！" message:nil firstButtonTitle:@"好的" otherButtonTitles:nil completion:^(NSUInteger idx) {
+        /* 处理完成之后调用回调Block */
+        handler(TSYSDKCashBackHandleStatusEnd);
+        
+        /* 结束用户当前正在玩的游戏 */
+        [self.navigationController popToRootViewControllerAnimated:YES];
+    }];
+}
 ```
 
 **至此，您已成功接入iOS端淘手游SDK。**
