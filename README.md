@@ -1,8 +1,8 @@
 淘手游SDK - iOS集成文档
 =====================
 
-集成准备
--------
+一、集成准备
+----------
 
 ###  1. 获取AppID、Secret
 集成淘手游SDK前，您需要先在[淘手游SDK官网](http://www.taoshouyou.com)获取AppID、AppSecret。
@@ -10,8 +10,8 @@
 ###  2. 提供游戏充值的URL给淘手游
 用户在游戏内购买东西时，淘手游通过此URL通知游戏厂商。
 
-导入SDK
--------
+二、导入SDK
+----------
 
 ### 1. 使用CocoaPods自动导入
 在您的Podfile里添加此行内容：
@@ -35,8 +35,8 @@ pod install
 在`Build Settings`选项卡的`Other Linker Flags`中，添加`-ObjC`标识：
 ![-ObjC](https://raw.githubusercontent.com/devdawei/TSYSDK/master/DocLinkImg/img_build_settings.png)
 
-工程配置
--------
+三、工程配置
+-----------
 
 在`Info`选项卡的`URL Types`中，添加`URL Schemes`，在初始化SDK时要用到该参数，例如跳转到支付宝完成支付后，根据该参数跳转回应用。
 
@@ -47,9 +47,11 @@ pod install
 ```
 <key>LSApplicationQueriesSchemes</key>
 <array>
+	<string>mqqwpa</string>
+	<string>alipayshare</string>
+	<string>alipay</string>
 	<string>weixin</string>
 	<string>wechat</string>
-	<string>mqqwpa</string>
 </array>
 ```
 
@@ -64,8 +66,8 @@ pod install
 示例图片如下：
 ![LSApplicationQueriesSchemes](https://raw.githubusercontent.com/devdawei/TSYSDK/master/DocLinkImg/img_info_atsAndQueries.png)
 
-基本功能使用
-----------
+四、基本功能使用
+--------------
 
 ### 1. 在AppDelegate中初始化SDK
 您需要先引入头文件：
@@ -137,13 +139,15 @@ typedef NS_ENUM(NSUInteger, TSYSDKLoginStatus) {
            resultDict:(NSDictionary *)resultDict;
 ```
 
-然后调用打开登录控制器接口：
+然后在`- (void)viewDidLoad`中设置登录代理：
 ```
-TSYSDKManager *mgr = [TSYSDKManager sharedManager];
 // 设置登录代理
-mgr.loginDelegate = self;
+[TSYSDKManager sharedManager].loginDelegate = self;
+```
+最后调用打开登录控制器接口：
+```
 // 调用打开登录控制器接口
-[mgr login];
+[[TSYSDKManager sharedManager] login];
 ```
 
 关于登录接口说明：
@@ -182,7 +186,12 @@ typedef NS_ENUM(NSUInteger, TSYSDKEnterGameStatus) {
 		   resultDict:(NSDictionary *)resultDict;
 ```
 
-然后调用进入游戏接口：
+然后在`- (void)viewDidLoad`中设置进入游戏代理：
+```
+// 设置进入游戏代理
+[TSYSDKManager sharedManager].enterGameDelegate = self;
+```
+最后调用进入游戏接口：
 ```
 // 将用户信息字典转化为JSON字符串
 NSDictionary *userInfoDict = @{
@@ -212,11 +221,8 @@ else
 }
 NSLog(@"jsonString: \n%@", jsonString);
 
-TSYSDKManager *mgr = [TSYSDKManager sharedManager];
-// 设置进入游戏代理
-mgr.enterGameDelegate = self;
 // 调用进入游戏接口
-[mgr enterGameWithUserInfo:jsonString];
+[[TSYSDKManager sharedManager] enterGameWithUserInfo:jsonString];
 ```
 
 关于进入游戏接口说明：
@@ -291,18 +297,21 @@ typedef NS_ENUM(NSUInteger, TSYPayStatus) {
 
 ```
 
-然后调用支付接口：
+然后在`- (void)viewDidLoad`中设置进入支付代理：
 ```
-TSYSDKManager *mgr = [TSYSDKManager sharedManager];
 // 设置支付代理
-mgr.payDelegate = self;
+[TSYSDKManager sharedManager].payDelegate = self;
+```
+
+最后调用支付接口：
+```
 // 调用支付接口
-[mgr payWithServiceAreaId:@"21"
-               goodsPrice:@"0.01"
-                goodsName:@"测试商品"
-               goodsCount:@"1"
-                goodsData:@""
-                 totalFee:@"0.01"];
+[[TSYSDKManager sharedManager] payWithServiceAreaId:@"21"
+                                         goodsPrice:@"0.01"
+                                          goodsName:@"测试商品"
+                                         goodsCount:@"1"
+                                          goodsData:@""
+                                           totalFee:@"0.01"];
 ```
 
 关于支付接口说明：
@@ -351,13 +360,16 @@ switchAccountWithStatus:(TSYSDKSwitchAccountStatus)status
              resultDict:(NSDictionary *)resultDict;
 ```
 
-然后调用切换账号接口：
+然后在`- (void)viewDidLoad`中设置切换账号代理：
 ```
-TSYSDKManager *mgr = [TSYSDKManager sharedManager];
 // 设置切换账号代理
-mgr.switchAccountDelegate = self;
+[TSYSDKManager sharedManager].switchAccountDelegate = self;
+```
+
+最后调用切换账号接口：
+```
 // 调用切换账号接口
-[mgr switchAccount];
+[[TSYSDKManager sharedManager] switchAccount];
 ```
 
 关于切换账号接口说明：
@@ -391,7 +403,7 @@ typedef NS_ENUM(NSUInteger, TSYSDKCashBackHandleStatus) {
       cashBackHandler:(void (^)(TSYSDKCashBackHandleStatus))handler;
 ```
 
-示例如下：
+处理示例如下：
 ```
 #pragma mark - Life cycle
 
@@ -412,7 +424,7 @@ typedef NS_ENUM(NSUInteger, TSYSDKCashBackHandleStatus) {
 {
     /* 开始处理之前调用回调Block */
     handler(TSYSDKCashBackHandleStatusBegin);
-    [DVVAlertView showAlertWithTitle:@"您的账号已经退游返现成功，不能继续玩了哦！" message:nil firstButtonTitle:@"好的" otherButtonTitles:nil completion:^(NSUInteger idx) {
+    [DVVAlertView showAlertWithTitle:@"您已退游成功，请重新登录！" message:nil buttonTitles:@[@"好的"] completion:^(NSUInteger idx) {
         /* 处理完成之后调用回调Block */
         handler(TSYSDKCashBackHandleStatusEnd);
         
@@ -427,14 +439,12 @@ typedef NS_ENUM(NSUInteger, TSYSDKCashBackHandleStatus) {
 淘手游SDK - 服务器端接入
 =====================
 
-淘手游提供的Http接口
------------------
-
-### 1. 淘手游提供的Http接口
+一、淘手游提供的Http接口
+---------------------
 
 **NOTE：**只有这个接口才能保证用户是通过帐号密码验证的，一定要使用。游戏服务器向平台服务器验证登录用户令牌是否有效的接口说明：
 
-接口链接：[http://sdk.taoshouyou.com/user/checktoken](http://sdk.taoshouyou.com/user/checktoken)
+接口地址：`http://sdk.taoshouyou.com/user/checktoken`
 
 提交方式：POST
 
@@ -456,7 +466,9 @@ typedef NS_ENUM(NSUInteger, TSYSDKCashBackHandleStatus) {
 用户登录流程：
 ![loginProcess](https://raw.githubusercontent.com/devdawei/TSYSDK/master/DocLinkImg/img_service_loginProcess.png)
 
-### 2. 游戏方服务器提供的http接口（游戏内购买接口）
+
+二、游戏方服务器提供的http接口（游戏内购买接口）
+-----------------------------------------
 
 **NOTE：**淘手游服务器完成支付流程后将通知游戏服务器修改玩家账户内相关数据的接口, 只有用户支付成功才会产生通知。参照用户充值流程图中9-10步骤。
 
